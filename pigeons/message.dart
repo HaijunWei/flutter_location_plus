@@ -5,7 +5,9 @@ import 'package:pigeon/pigeon.dart';
   dartOptions: DartOptions(),
   swiftOut: 'ios/Classes/Messages.g.swift',
   swiftOptions: SwiftOptions(),
-  objcOptions: ObjcOptions(prefix: 'HJ'),
+  kotlinOut:
+      'android/src/main/kotlin/com/haijunwei/location_plus/Messages.g.kt',
+  kotlinOptions: KotlinOptions(package: 'com.haijunwei.location_plus'),
 ))
 @HostApi()
 abstract class LocationPlus {
@@ -14,50 +16,22 @@ abstract class LocationPlus {
 
   @async
   Location requestSingleLocation();
-
-  @async
-  List<Placemark> reverseGeo(Location location);
 }
 
 class Location {
   Location({
     required this.latitude,
     required this.longitude,
+    required this.country,
+    required this.province,
+    required this.city,
+    required this.direction,
   });
 
   final double latitude;
   final double longitude;
-}
-
-class Placemark {
-  /// 位置
-  final String name;
-
-  /// 街道
-  final String thoroughfare;
-
-  /// 子街道
-  final String subThoroughfare;
-
-  /// 市
-  final String locality;
-
-  /// 区\县
-  final String subLocality;
-
-  /// 行政区
-  final String administrativeArea;
-
-  /// 国家
   final String country;
-
-  Placemark({
-    required this.name,
-    required this.thoroughfare,
-    required this.subThoroughfare,
-    required this.locality,
-    required this.subLocality,
-    required this.administrativeArea,
-    required this.country,
-  });
+  final String province;
+  final String city;
+  final String direction;
 }

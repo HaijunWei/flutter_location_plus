@@ -18,6 +18,9 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        flatDir {
+            dirs project(':location_plus').file('libs')
+        }
     }
 }
 
@@ -43,6 +46,10 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         test.java.srcDirs += 'src/test/kotlin'
+
+        main {
+            jniLibs.srcDir 'libs'
+        }
     }
 
     defaultConfig {
@@ -50,6 +57,8 @@ android {
     }
 
     dependencies {
+        implementation fileTree(dir: 'libs', include: ['*.jar'])
+        
         testImplementation 'org.jetbrains.kotlin:kotlin-test'
         testImplementation 'org.mockito:mockito-core:5.0.0'
     }

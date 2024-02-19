@@ -19,16 +19,32 @@ class Location {
   Location({
     required this.latitude,
     required this.longitude,
+    required this.country,
+    required this.province,
+    required this.city,
+    required this.direction,
   });
 
   double latitude;
 
   double longitude;
 
+  String country;
+
+  String province;
+
+  String city;
+
+  String direction;
+
   Object encode() {
     return <Object?>[
       latitude,
       longitude,
+      country,
+      province,
+      city,
+      direction,
     ];
   }
 
@@ -37,64 +53,10 @@ class Location {
     return Location(
       latitude: result[0]! as double,
       longitude: result[1]! as double,
-    );
-  }
-}
-
-class Placemark {
-  Placemark({
-    required this.name,
-    required this.thoroughfare,
-    required this.subThoroughfare,
-    required this.locality,
-    required this.subLocality,
-    required this.administrativeArea,
-    required this.country,
-  });
-
-  /// 位置
-  String name;
-
-  /// 街道
-  String thoroughfare;
-
-  /// 子街道
-  String subThoroughfare;
-
-  /// 市
-  String locality;
-
-  /// 区\县
-  String subLocality;
-
-  /// 行政区
-  String administrativeArea;
-
-  /// 国家
-  String country;
-
-  Object encode() {
-    return <Object?>[
-      name,
-      thoroughfare,
-      subThoroughfare,
-      locality,
-      subLocality,
-      administrativeArea,
-      country,
-    ];
-  }
-
-  static Placemark decode(Object result) {
-    result as List<Object?>;
-    return Placemark(
-      name: result[0]! as String,
-      thoroughfare: result[1]! as String,
-      subThoroughfare: result[2]! as String,
-      locality: result[3]! as String,
-      subLocality: result[4]! as String,
-      administrativeArea: result[5]! as String,
-      country: result[6]! as String,
+      country: result[2]! as String,
+      province: result[3]! as String,
+      city: result[4]! as String,
+      direction: result[5]! as String,
     );
   }
 }
@@ -106,9 +68,6 @@ class _LocationPlusCodec extends StandardMessageCodec {
     if (value is Location) {
       buffer.putUint8(128);
       writeValue(buffer, value.encode());
-    } else if (value is Placemark) {
-      buffer.putUint8(129);
-      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -117,10 +76,8 @@ class _LocationPlusCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 128:
+      case 128: 
         return Location.decode(readValue(buffer)!);
-      case 129:
-        return Placemark.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -138,10 +95,8 @@ class LocationPlus {
   static const MessageCodec<Object?> pigeonChannelCodec = _LocationPlusCodec();
 
   Future<void> startUpdatingLocation() async {
-    const String __pigeon_channelName =
-        'dev.flutter.pigeon.location_plus.LocationPlus.startUpdatingLocation';
-    final BasicMessageChannel<Object?> __pigeon_channel =
-        BasicMessageChannel<Object?>(
+    const String __pigeon_channelName = 'dev.flutter.pigeon.location_plus.LocationPlus.startUpdatingLocation';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
       binaryMessenger: __pigeon_binaryMessenger,
@@ -162,10 +117,8 @@ class LocationPlus {
   }
 
   Future<void> stopUpdatingLocation() async {
-    const String __pigeon_channelName =
-        'dev.flutter.pigeon.location_plus.LocationPlus.stopUpdatingLocation';
-    final BasicMessageChannel<Object?> __pigeon_channel =
-        BasicMessageChannel<Object?>(
+    const String __pigeon_channelName = 'dev.flutter.pigeon.location_plus.LocationPlus.stopUpdatingLocation';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
       binaryMessenger: __pigeon_binaryMessenger,
@@ -186,10 +139,8 @@ class LocationPlus {
   }
 
   Future<Location> requestSingleLocation() async {
-    const String __pigeon_channelName =
-        'dev.flutter.pigeon.location_plus.LocationPlus.requestSingleLocation';
-    final BasicMessageChannel<Object?> __pigeon_channel =
-        BasicMessageChannel<Object?>(
+    const String __pigeon_channelName = 'dev.flutter.pigeon.location_plus.LocationPlus.requestSingleLocation';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
       binaryMessenger: __pigeon_binaryMessenger,
@@ -211,35 +162,6 @@ class LocationPlus {
       );
     } else {
       return (__pigeon_replyList[0] as Location?)!;
-    }
-  }
-
-  Future<List<Placemark?>> reverseGeo(Location location) async {
-    const String __pigeon_channelName =
-        'dev.flutter.pigeon.location_plus.LocationPlus.reverseGeo';
-    final BasicMessageChannel<Object?> __pigeon_channel =
-        BasicMessageChannel<Object?>(
-      __pigeon_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: __pigeon_binaryMessenger,
-    );
-    final List<Object?>? __pigeon_replyList =
-        await __pigeon_channel.send(<Object?>[location]) as List<Object?>?;
-    if (__pigeon_replyList == null) {
-      throw _createConnectionError(__pigeon_channelName);
-    } else if (__pigeon_replyList.length > 1) {
-      throw PlatformException(
-        code: __pigeon_replyList[0]! as String,
-        message: __pigeon_replyList[1] as String?,
-        details: __pigeon_replyList[2],
-      );
-    } else if (__pigeon_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (__pigeon_replyList[0] as List<Object?>?)!.cast<Placemark?>();
     }
   }
 }

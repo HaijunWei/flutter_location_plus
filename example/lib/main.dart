@@ -29,26 +29,17 @@ class _MyAppState extends State<MyApp> {
     final status = await Permission.location.request();
     log('$status');
     final location = await locationPlus.requestSingleLocation();
-    locationPlus.reverseGeo(location).then((value) {
-      for (var e in value) {
-        log('${e?.country} ${e?.locality} ${e?.subLocality}');
-      }
-    });
+    log('${location.latitude}, ${location.longitude}, ${location.country} ${location.province} ${location.city} ${location.direction}');
   }
 
   @override
   void initState() {
     super.initState();
     locationPlus.locationUpdated.listen((event) {
-      log('${event.latitude}, ${event.longitude}');
-      locationPlus.reverseGeo(event).then((value) {
-        for (var e in value) {
-          log('${e?.country} ${e?.locality} ${e?.subLocality}');
-        }
-      });
+      log('${event.latitude}, ${event.longitude}, ${event.country} ${event.province} ${event.city} ${event.direction}');
     });
 
-    _startSingle();
+    _start();
   }
 
   @override

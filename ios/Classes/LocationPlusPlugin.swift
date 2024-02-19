@@ -42,28 +42,6 @@ public class LocationPlusPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, 
         locationManager = nil
     }
     
-    func reverseGeo(location: Location, completion: @escaping (Result<[Placemark], Error>) -> Void) {
-        let geocoder = CLGeocoder()
-        geocoder.reverseGeocodeLocation(CLLocation(latitude: location.latitude, longitude: location.longitude), completionHandler: { placemarks, error in
-            if let e = error {
-                completion(.failure(e))
-                return
-            }
-            let list = placemarks?.map {
-                Placemark(
-                    name: $0.name ?? "",
-                    thoroughfare: $0.thoroughfare ?? "",
-                    subThoroughfare: $0.subThoroughfare ?? "",
-                    locality: $0.locality ?? "",
-                    subLocality: $0.subLocality ?? "",
-                    administrativeArea: $0.administrativeArea ?? "",
-                    country: $0.country ?? ""
-                )
-            }
-            completion(.success(list ?? []))
-        })
-    }
-    
     func requestSingleLocation(completion: @escaping (Result<Location, Error>) -> Void) {
         let manager = SingleLocationManager(callback: completion, onDone: { [weak self] m in
             self?.singleLocationManagers.removeAll(where: { $0 === m })
@@ -77,7 +55,15 @@ public class LocationPlusPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, 
     
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let l = locations.first else { return }
-        eventSink?([l.coordinate.latitude, l.coordinate.longitude])
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(l, completionHandler: { [weak self] placemarks, error in
+            guard let `self` = self else { return }
+            if error != nil { return }
+            if let e = placemarks?.first {
+                let r =  Location(latitude: l.coordinate.latitude, longitude: l.coordinate.longitude, country: e.country ?? "", province: e.administrativeArea ?? e.locality ?? "", city: e.locality ?? "", direction: e.subLocality ?? "")
+                eventSink?(r.toList())
+            }
+        })
     }
 }
 
@@ -104,7 +90,24 @@ class SingleLocationManager: NSObject, CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let l = locations.first else { return }
         locationManager.stopUpdatingLocation()
-        callback(.success(Location(latitude: l.coordinate.latitude, longitude: l.coordinate.longitude)))
-        onDone(self)
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(l, completionHandler: { [weak self] placemarks, error in
+            guard let `self` = self else { return }
+            if let e = error {
+                callback(.failure(e))
+                return
+            }
+            if let e = placemarks?.first {
+                let r =  Location(latitude: l.coordinate.latitude, longitude: l.coordinate.longitude, country: e.thoroughfare ?? "", province: e.administrativeArea ?? "", city: e.thoroughfare ?? "", direction: e.subThoroughfare ?? "")
+                callback(.success(r))
+            } else {
+                callback(.failure(LocationError.custom(msg: "反地理编码出错")))
+            }
+            onDone(self)
+        })
     }
+}
+
+enum LocationError: LocalizedError {
+    case custom(msg: String)
 }

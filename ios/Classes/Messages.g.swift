@@ -42,69 +42,36 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
 struct Location {
   var latitude: Double
   var longitude: Double
+  var country: String
+  var province: String
+  var city: String
+  var direction: String
 
   static func fromList(_ list: [Any?]) -> Location? {
     let latitude = list[0] as! Double
     let longitude = list[1] as! Double
+    let country = list[2] as! String
+    let province = list[3] as! String
+    let city = list[4] as! String
+    let direction = list[5] as! String
 
     return Location(
       latitude: latitude,
-      longitude: longitude
+      longitude: longitude,
+      country: country,
+      province: province,
+      city: city,
+      direction: direction
     )
   }
   func toList() -> [Any?] {
     return [
       latitude,
       longitude,
-    ]
-  }
-}
-
-/// Generated class from Pigeon that represents data sent in messages.
-struct Placemark {
-  /// 位置
-  var name: String
-  /// 街道
-  var thoroughfare: String
-  /// 子街道
-  var subThoroughfare: String
-  /// 市
-  var locality: String
-  /// 区\县
-  var subLocality: String
-  /// 行政区
-  var administrativeArea: String
-  /// 国家
-  var country: String
-
-  static func fromList(_ list: [Any?]) -> Placemark? {
-    let name = list[0] as! String
-    let thoroughfare = list[1] as! String
-    let subThoroughfare = list[2] as! String
-    let locality = list[3] as! String
-    let subLocality = list[4] as! String
-    let administrativeArea = list[5] as! String
-    let country = list[6] as! String
-
-    return Placemark(
-      name: name,
-      thoroughfare: thoroughfare,
-      subThoroughfare: subThoroughfare,
-      locality: locality,
-      subLocality: subLocality,
-      administrativeArea: administrativeArea,
-      country: country
-    )
-  }
-  func toList() -> [Any?] {
-    return [
-      name,
-      thoroughfare,
-      subThoroughfare,
-      locality,
-      subLocality,
-      administrativeArea,
       country,
+      province,
+      city,
+      direction,
     ]
   }
 }
@@ -114,8 +81,6 @@ private class LocationPlusCodecReader: FlutterStandardReader {
     switch type {
       case 128:
         return Location.fromList(self.readValue() as! [Any?])
-      case 129:
-        return Placemark.fromList(self.readValue() as! [Any?])
       default:
         return super.readValue(ofType: type)
     }
@@ -126,9 +91,6 @@ private class LocationPlusCodecWriter: FlutterStandardWriter {
   override func writeValue(_ value: Any) {
     if let value = value as? Location {
       super.writeByte(128)
-      super.writeValue(value.toList())
-    } else if let value = value as? Placemark {
-      super.writeByte(129)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -155,7 +117,6 @@ protocol LocationPlus {
   func startUpdatingLocation() throws
   func stopUpdatingLocation() throws
   func requestSingleLocation(completion: @escaping (Result<Location, Error>) -> Void)
-  func reverseGeo(location: Location, completion: @escaping (Result<[Placemark], Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -204,23 +165,6 @@ class LocationPlusSetup {
       }
     } else {
       requestSingleLocationChannel.setMessageHandler(nil)
-    }
-    let reverseGeoChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.location_plus.LocationPlus.reverseGeo", binaryMessenger: binaryMessenger, codec: codec)
-    if let api = api {
-      reverseGeoChannel.setMessageHandler { message, reply in
-        let args = message as! [Any?]
-        let locationArg = args[0] as! Location
-        api.reverseGeo(location: locationArg) { result in
-          switch result {
-            case .success(let res):
-              reply(wrapResult(res))
-            case .failure(let error):
-              reply(wrapError(error))
-          }
-        }
-      }
-    } else {
-      reverseGeoChannel.setMessageHandler(nil)
     }
   }
 }
