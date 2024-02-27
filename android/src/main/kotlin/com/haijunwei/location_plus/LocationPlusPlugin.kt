@@ -37,12 +37,13 @@ class LocationPlusPlugin: FlutterPlugin, EventChannel.StreamHandler, LocationPlu
       override fun onReceiveLocation(location : BDLocation?) {
         if (location != null) {
           val l = Location(
-                  location.latitude,
-                  location.longitude,
-                  location.country,
-                  location.province,
-                  location.city,
-                  location.district)
+            location.latitude,
+            location.longitude,
+            location.country ?: "",
+            location.province ?: "",
+            location.city ?: "",
+            location.district ?: ""
+          )
           eventSink?.success(l.toList())
         }
       }
@@ -99,12 +100,13 @@ class SingleLocationManager(
   private fun completion(location : BDLocation?) {
     if (location != null) {
       val l = Location(
-              location.latitude,
-              location.longitude,
-              location.country,
-              location.province,
-              location.city,
-              location.district)
+        location.latitude,
+        location.longitude,
+        location.country ?:"",
+        location.province ?:"",
+        location.city ?:"",
+        location.district ?:""
+      )
       callback(Result.success(l))
     } else {
       callback(Result.failure(Exception("定位出错")))
