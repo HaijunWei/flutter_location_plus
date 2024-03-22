@@ -60,7 +60,11 @@ public class LocationPlusPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, 
             guard let `self` = self else { return }
             if error != nil { return }
             if let e = placemarks?.first {
-                let r =  Location(latitude: l.coordinate.latitude, longitude: l.coordinate.longitude, country: e.country ?? "", province: e.administrativeArea ?? e.locality ?? "", city: e.locality ?? "", direction: e.subLocality ?? "")
+                let country = e.country ?? ""
+                let province = e.administrativeArea ?? e.locality ?? ""
+                let city = e.locality ?? ""
+                let direction = e.subLocality ?? ""
+                let r =  Location(latitude: l.coordinate.latitude, longitude: l.coordinate.longitude, country: country, province: province, city: city, direction: direction)
                 eventSink?(r.toList())
             }
         })
@@ -98,7 +102,11 @@ class SingleLocationManager: NSObject, CLLocationManagerDelegate {
                 return
             }
             if let e = placemarks?.first {
-                let r =  Location(latitude: l.coordinate.latitude, longitude: l.coordinate.longitude, country: e.thoroughfare ?? "", province: e.administrativeArea ?? "", city: e.thoroughfare ?? "", direction: e.subThoroughfare ?? "")
+                let country = e.country ?? ""
+                let province = e.administrativeArea ?? e.locality ?? ""
+                let city = e.locality ?? ""
+                let direction = e.subLocality ?? ""
+                let r = Location(latitude: l.coordinate.latitude, longitude: l.coordinate.longitude, country: country, province: province, city: city, direction: direction)
                 callback(.success(r))
             } else {
                 callback(.failure(LocationError.custom(msg: "反地理编码出错")))
